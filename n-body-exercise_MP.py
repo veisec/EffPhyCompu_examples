@@ -1,4 +1,5 @@
 import numpy as np
+from multiprocessing import Pool
 import matplotlib.pyplot as plt
 
 
@@ -22,16 +23,27 @@ def a(i, x, G, m):
     return result
 
 
+def timestep_i(args):
+    """Computes the next position and velocity for the ith mass."""
+    i, x0, v0, G, m, dt = args
+    a_i0 = a(i, x0, G, m)
+    v_i1 = a_i0 * dt + v0[i]
+    x_i1 = a_i0 * dt**2 + v0[i] * dt + x0[i]
+    return i, x_i1, v_i1
 
-def timestep(x0, v0, G, m, dt):
-    """Computes the next position and velocity for all masses given initial conditions and a time step size."""
+
+def timestep(x0, v0, G, m, dt, pool):
+    """Computes the next position and velocity for all masses given initial conditions and a time step size"""
     N = len(x0)
+    tasks = [(i, x0, v0, G, m, dt) for i in range(N)]
+    results = pool.map(timestep_i, tasks)
     x1 = np.empty(x0.shape, dtype=float)
     v1 = np.empty(v0.shape, dtype=float)
-    for i in range(N):
-        a_i0 = a(i, x0, G, m)
-        v1[i] = a_i0 * dt + v0[i]
-        x1[i] = a_i0 * dt**2 + v0[i] * dt + x0[i]
+    for i, x_i1, v_i1 in results:
+        x1[i] = x_i1
+        v1[i] = v_i1
+    
+    
     return x1, v1
 
 

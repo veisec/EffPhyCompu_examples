@@ -2,7 +2,6 @@ import numpy as np
 from multiprocessing import Pool
 import matplotlib.pyplot as plt
 
-
 def remove_i(x, i):
     """Drops the ith element of an array."""
     shape = (x.shape[0] - 1,) + x.shape[1:]
@@ -47,19 +46,6 @@ def timestep(x0, v0, G, m, dt, pool):
     return x1, v1
 
 
-# def timestep(x0, v0, G, m, dt, pool):
-#     """Computes the next position and velocity for all masses given
-#     a initial conditions and a time step size.
-#     """
-#     N = len(x0)
-#     tasks = [(i, x0, v0, G, m, dt) for i in range(N)]
-#     results = pool.map(timestep_i, tasks)
-#     x1 = np.empty(x0.shape, dtype=float)
-#     v1 = np.empty(v0.shape, dtype=float)
-#     for i, x_i1, v_i1 in results:
-#         x1[i] = x_i1
-#         v1[i] = v_i1
-#     return x1, v1
 
 
 def initial_cond(N, D):
@@ -83,32 +69,32 @@ def makefig(x, v, t):
     plt.savefig("n-body-t{0}.svg".format(t))
 
 
-def simulate_noPool(N, D, S, G, dt):
-    x0, v0, m = initial_cond(N, D)
-    for s in range(S):
-        x1, v1 = timestep(x0, v0, G, m, dt)
-        x0, v0 = x1, v1
 
+def simulate(P, N, D, S, G, dt): 
+    x0, v0, m = initial_cond(N, D) 
+    pool = Pool(P)
+    for s in range(S):
+        x1, v1 = timestep(x0, v0, G, m, dt, pool) 
+        x0,v0=x1,v1
 
 if __name__ == "__main__":
-    x0, v0, m = initial_cond(10, 2)
-    x1, v1 = timestep(x0, v0, 1.0, m, 1.0e-3)
-
-    # makefig(x0, v0, 0)
-    # makefig(x1, v1, 1e-3)
+  
 
     import time
 
-    Ns = [2, 4, 8, 16, 32, 64, 128, 256]
-    runtimes = []
-    for N in Ns:
+ 
+
+    Ps=[1,2,4,8] 
+    runtimes = [] 
+    for P in Ps:
         start = time.time()
-        simulate_noPool(N, 3, 100, 1.0, 1e-3)
+        simulate(P, 256, 3, 300, 1.0, 1e-3)
         stop = time.time()
         runtimes.append(stop - start)
 
-    print(runtimes)
+    # print(runtimes)
+    rts = runtimes[0]/np.array(runtimes)
     plt.figure()
-    plt.plot(Ns, runtimes, "ko-")
+    plt.plot(Ps, rts, "ko-")
     plt.ylabel("sec")
     plt.show()

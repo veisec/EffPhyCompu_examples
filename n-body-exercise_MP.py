@@ -2,6 +2,7 @@ import numpy as np
 from multiprocessing import Pool
 import matplotlib.pyplot as plt
 
+
 def remove_i(x, i):
     """Drops the ith element of an array."""
     shape = (x.shape[0] - 1,) + x.shape[1:]
@@ -41,11 +42,8 @@ def timestep(x0, v0, G, m, dt, pool):
     for i, x_i1, v_i1 in results:
         x1[i] = x_i1
         v1[i] = v_i1
-    
-    
+
     return x1, v1
-
-
 
 
 def initial_cond(N, D):
@@ -69,23 +67,19 @@ def makefig(x, v, t):
     plt.savefig("n-body-t{0}.svg".format(t))
 
 
-
-def simulate(P, N, D, S, G, dt): 
-    x0, v0, m = initial_cond(N, D) 
+def simulate(P, N, D, S, G, dt):
+    x0, v0, m = initial_cond(N, D)
     pool = Pool(P)
     for s in range(S):
-        x1, v1 = timestep(x0, v0, G, m, dt, pool) 
-        x0,v0=x1,v1
+        x1, v1 = timestep(x0, v0, G, m, dt, pool)
+        x0, v0 = x1, v1
+
 
 if __name__ == "__main__":
-  
-
     import time
 
- 
-
-    Ps=[1,2,4,8] 
-    runtimes = [] 
+    Ps = [1, 2, 4, 8]
+    runtimes = []
     for P in Ps:
         start = time.time()
         simulate(P, 256, 3, 300, 1.0, 1e-3)
@@ -93,8 +87,8 @@ if __name__ == "__main__":
         runtimes.append(stop - start)
 
     # print(runtimes)
-    rts = runtimes[0]/np.array(runtimes)
+    rts = runtimes[0] / np.array(runtimes)
     plt.figure()
     plt.plot(Ps, rts, "ko-")
-    plt.ylabel("sec")
+    plt.ylabel("scale s")
     plt.show()
